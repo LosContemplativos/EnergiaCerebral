@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Entrainment</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  #flash-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+  /* LANG TOGGLE */
+  #lang-btn {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 200;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #aaa;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #lang-btn:hover { background: rgba(255,255,255,0.13); }
+
+  /* MAIN UI */
+  .ui {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 28px;
+    background: rgba(0,0,0,0.75);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 4px; letter-spacing: 2px; text-transform: uppercase; }
+  .subtitle { font-size: 0.75rem; color: #666; margin-bottom: 20px; }
+  .section-label { font-size: 0.62rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; text-align: left; }
+
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .preset {
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .preset:hover { background: rgba(255,255,255,0.1); }
+  .preset.active { border-color: var(--color); background: rgba(255,255,255,0.07); }
+  .preset .emoji { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+  .preset .name { font-size: 0.75rem; font-weight: bold; }
+  .preset .hz-label { font-size: 0.62rem; color: #888; }
+
+  .freq-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .freq-display { font-size: 2.2rem; font-weight: 200; letter-spacing: 3px; min-width: 120px; text-align: left; }
+  .freq-display span { font-size: 0.9rem; color: #888; }
+  .freq-range-labels { display: flex; justify-content: space-between; font-size: 0.58rem; color: #444; margin-bottom: 4px; }
+  input[type=range] { width: 100%; margin-bottom: 16px; accent-color: #fff; }
+
+  .wave-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    border: 1px solid;
+  }
+
+  .color-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+  .color-btn { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: transform 0.2s; }
+  .color-btn.selected { border-color: #fff; transform: scale(1.2); }
+
+  .volume-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 0.75rem; color: #666; }
+  .volume-row input { flex: 1; accent-color: #888; }
+
+  .headphone-note {
+    font-size: 0.67rem; color: #665500;
+    background: rgba(255,200,0,0.06);
+    border: 1px solid rgba(255,200,0,0.12);
+    border-radius: 8px; padding: 7px 10px; margin-bottom: 16px; text-align: left;
+  }
+
+  #start-btn {
+    width: 100%; padding: 13px; border-radius: 14px;
+    font-size: 1rem; font-weight: bold; cursor: pointer; letter-spacing: 2px;
+    background: rgba(255,255,255,0.07); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
+  }
+  #start-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .tip { margin-top: 12px; font-size: 0.68rem; color: #444; line-height: 1.5; }
+  .warning { margin-top: 10px; font-size: 0.65rem; color: #883333; padding: 7px; border-radius: 8px; border: 1px solid #88333333; background: rgba(140,40,40,0.08); }
+
+  /* ── TABS ── */
+  .tab-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 7px 4px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: #555;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: rgba(255,255,255,0.08);
+    color: #ccc;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── ADVANCED BANDS ── */
+  .bands-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .band-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .band-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+  .band-item.expanded { border-color: rgba(255,255,255,0.1); }
+  .band-header { display: flex; align-items: center; gap: 10px; }
+  .band-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .band-name { font-size: 0.8rem; font-weight: bold; flex: 1; }
+  .band-hz-tag {
+    font-size: 0.58rem;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid;
+    opacity: 0.7;
+  }
+  .band-arrow { font-size: 0.6rem; color: #444; transition: transform 0.2s; margin-left: 4px; }
+  .band-item.expanded .band-arrow { transform: rotate(180deg); }
+  .band-body {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .band-item.expanded .band-body { display: block; }
+  .band-desc { font-size: 0.7rem; color: #777; line-height: 1.7; margin-bottom: 8px; }
+  .band-uses { font-size: 0.67rem; color: #555; line-height: 1.6; }
+  .band-uses strong { color: #888; }
+  .band-sub-label { font-size: 0.58rem; color: #555; letter-spacing: 2px; text-transform: uppercase; margin: 8px 0 4px; }
+  .sub-bands { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .sub-band-chip {
+    font-size: 0.6rem;
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #666;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sub-band-chip:hover { background: rgba(255,255,255,0.1); color: #aaa; }
+  .band-try-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: #999;
+    font-size: 0.68rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .band-try-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .science-note {
+    font-size: 0.62rem;
+    color: #443;
+    background: rgba(255,200,0,0.04);
+    border: 1px solid rgba(255,200,0,0.08);
+    border-radius: 8px;
+    padding: 8px 10px;
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+
+  /* ── LIVE BREATH OVERLAY (during session) ── */
+  #breath-live-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+  }
+  #breath-live-overlay.active { display: flex; }
+  #breath-live-phase {
+    font-size: clamp(3rem, 14vw, 9rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 0 40px rgba(0,0,0,0.8);
+    transition: opacity 0.3s;
+  }
+  #breath-live-count {
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: rgba(255,255,255,0.35);
+    margin-top: 16px;
+    letter-spacing: 8px;
+    font-weight: 200;
+    text-shadow: 0 0 20px rgba(0,0,0,0.8);
+  }
+  #breath-live-cycle {
+    position: absolute;
+    bottom: 40px;
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+  }
+
+  /* ── BREATHING SCREEN — FULLSCREEN ── */
+  #breath-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: #000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+  }
+  #breath-screen.active { display: flex; }
+  .breath-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .breath-title { font-size: clamp(1.4rem, 4vw, 2.2rem); font-weight: bold; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+  .breath-subtitle { font-size: 0.8rem; color: #555; margin-bottom: 32px; letter-spacing: 1px; }
+  .breath-body {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 28px 36px;
+    margin-bottom: 28px; max-width: 560px; width: 100%; text-align: left;
+  }
+  .breath-pattern { font-size: clamp(1rem, 2.5vw, 1.2rem); color: #ccc; letter-spacing: 1px; margin-bottom: 14px; line-height: 2; }
+  .breath-pattern strong { color: #fff; }
+  .breath-why { font-size: 0.78rem; color: #555; line-height: 1.7; }
+  .breath-btn-row { display: flex; gap: 10px; max-width: 560px; width: 100%; flex-wrap: wrap; }
+  .breath-skip {
+    flex: 1; min-width: 110px; padding: 13px; border-radius: 12px;
+    background: transparent; color: #444;
+    border: 1px solid rgba(255,255,255,0.08); cursor: pointer; font-size: 0.78rem;
+    letter-spacing: 1px; transition: all 0.2s; font-family: 'Segoe UI', sans-serif;
+  }
+  .breath-skip:hover { color: #888; border-color: rgba(255,255,255,0.18); }
+  .breath-go {
+    flex: 2; min-width: 140px; padding: 13px; border-radius: 12px;
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+    font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; transition: all 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .breath-go:hover { background: rgba(255,255,255,0.15); }
+  .breath-guide-toggle {
+    flex: 1.5; min-width: 130px; padding: 13px; border-radius: 12px;
+    background: transparent; color: #555;
+    border: 1px solid rgba(255,255,255,0.08); cursor: pointer;
+    font-size: 0.75rem; letter-spacing: 1px; transition: all 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .breath-guide-toggle:hover { color: #aaa; }
+  .breath-guide-toggle.on { background: rgba(255,255,255,0.06); color: #aaa; border-color: rgba(255,255,255,0.15); }
+
+  /* ── LIVE BREATH GUIDE ── */
+  #breath-guide {
+    display: none; position: fixed; inset: 0;
+    background: #000; z-index: 60;
+    flex-direction: column; align-items: center; justify-content: center;
+  }
+  #breath-guide.active { display: flex; }
+  #guide-phase {
+    font-size: clamp(3rem, 14vw, 9rem); font-weight: 900;
+    letter-spacing: 4px; text-transform: uppercase; color: #fff;
+    transition: opacity 0.3s;
+  }
+  #guide-count { font-size: clamp(2rem, 6vw, 4rem); color: #333; margin-top: 16px; letter-spacing: 8px; font-weight: 200; }
+  #guide-cycle { position: absolute; bottom: 40px; font-size: 0.62rem; letter-spacing: 3px; color: #2a2a2a; text-transform: uppercase; }
+  #guide-stop-btn {
+    position: absolute; top: 28px; right: 28px;
+    padding: 8px 18px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent; color: #333; font-size: 0.7rem;
+    letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  #guide-stop-btn:hover { color: #888; border-color: rgba(255,255,255,0.2); }
+
+  /* ── TIMER SELECTOR ── */
+  .timer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .timer-chip {
+    padding: 5px 12px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent; color: #555;
+    font-size: 0.65rem; letter-spacing: 1px; cursor: pointer;
+    transition: all 0.15s; font-family: 'Segoe UI', sans-serif;
+  }
+  .timer-chip:hover { color: #aaa; border-color: rgba(255,255,255,0.2); }
+  .timer-chip.active { background: rgba(255,255,255,0.08); color: #ccc; border-color: rgba(255,255,255,0.2); }
+  #running-alarm { color: rgba(255,200,0,0.5); font-size: 0.6rem; letter-spacing: 2px; margin-top: 4px; }
+
+  /* ── HISTORY PANEL ── */
+  #history-panel {
+    display: none; position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(380px, 100vw);
+    background: #080810; border-left: 1px solid rgba(255,255,255,0.07);
+    z-index: 300; flex-direction: column;
+    padding: 28px 24px; overflow-y: auto;
+  }
+  #history-panel.open { display: flex; }
+  .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .history-title { font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; color: #666; }
+  .history-close { background: none; border: none; color: #444; font-size: 1.3rem; cursor: pointer; padding: 4px 8px; }
+  .history-close:hover { color: #aaa; }
+  .history-empty { font-size: 0.72rem; color: #2a2a2a; text-align: center; margin-top: 60px; line-height: 2; }
+  .history-entry { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; }
+  .history-entry-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .history-entry-name { font-size: 0.82rem; font-weight: bold; }
+  .history-entry-dur { font-size: 0.72rem; color: #555; letter-spacing: 2px; }
+  .history-entry-meta { font-size: 0.62rem; color: #3a3a4a; line-height: 1.7; }
+  .history-entry-wave { display: inline-block; font-size: 0.55rem; letter-spacing: 1px; padding: 2px 7px; border-radius: 8px; border: 1px solid; margin-right: 6px; }
+  .history-stats { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .hstat { text-align: center; }
+  .hstat-num { font-size: 1.6rem; font-weight: 200; color: #888; }
+  .hstat-label { font-size: 0.57rem; color: #333; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .history-clear { margin-top: 16px; width: 100%; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid rgba(255,80,80,0.1); color: #553333; font-size: 0.65rem; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; font-family: 'Segoe UI', sans-serif; }
+  .history-clear:hover { border-color: rgba(255,80,80,0.3); color: #aa5555; }
+  #history-btn {
+    position: fixed; top: 18px; left: 18px; z-index: 200;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+    color: #444; padding: 5px 12px; border-radius: 20px;
+    font-size: 0.7rem; cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+  }
+  #history-btn:hover { background: rgba(255,255,255,0.09); color: #888; }
+
+  /* ── RUNNING ── */
+  #stop-btn {
+    display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 100;
+    padding: 12px 28px; border-radius: 50px;
+    border: 2px solid var(--flash-color, #ffffff); background: rgba(0,0,0,0.6);
+    color: var(--flash-color, #ffffff); font-size: 0.9rem; font-weight: bold;
+    cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(10px);
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+  #stop-btn:hover { background: rgba(0,0,0,0.85); }
+  #running-info { display: none; }
+
+  /* ── CONGRATS SCREEN ── */
+  #congrats-screen {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: #000; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  #congrats-screen.active { display: flex; }
+  #congrats-emoji { font-size: 4rem; margin-bottom: 20px; }
+  #congrats-title { font-size: clamp(1.6rem, 5vw, 3rem); font-weight: 900; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px; }
+  #congrats-sub { font-size: 0.85rem; color: #666; letter-spacing: 2px; margin-bottom: 40px; }
+  #congrats-btn { padding: 13px 32px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); color: #fff; font-size: 0.85rem; font-weight: bold; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; font-family: 'Segoe UI', sans-serif; }
+  #congrats-btn:hover { background: rgba(255,255,255,0.15); }
+</style>
+</head>
+<body>
+
+<button id="lang-btn" onclick="toggleLang()">EN</button>
+<div id="flash-overlay"></div>
+
+<!-- ═══════════ MAIN UI ═══════════ -->
+<div class="ui" id="main-ui">
+  <h1 data-i="title">⚡ Entrainment</h1>
+  <p class="subtitle" data-i="subtitle">Luz + Audio binaural — usar auriculares</p>
+
+  <!-- TABS -->
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('session')">▶ Sesión</button>
+    <button class="tab-btn" onclick="switchTab('bands')">🧠 Bandas</button>
+  </div>
+
+  <!-- TAB: SESSION -->
+  <div class="tab-panel active" id="tab-session">
+
+  <p class="section-label" data-i="sec-presets">Presets</p>
+  <div class="preset-grid" id="preset-grid">
+    <!-- generated by JS -->
+  </div>
+
+  <p class="section-label" data-i="sec-freq">Frecuencia manual</p>
+  <div class="freq-row">
+    <div class="freq-display" id="freq-display">10 <span>Hz</span></div>
+    <div id="wave-badge" class="wave-badge"></div>
+  </div>
+  <div class="freq-range-labels">
+    <span>1</span><span data-i="delta">Delta</span><span data-i="theta">Theta</span>
+    <span data-i="alfa">Alfa</span><span data-i="beta">Beta</span><span data-i="gamma">Gamma</span><span>100</span>
+  </div>
+  <input type="range" min="1" max="100" value="10" step="0.5" id="freq-slider" oninput="updateFreq(this.value)">
+
+  <p class="section-label" data-i="sec-color">Color de flash</p>
+  <div class="color-row">
+    <div class="color-btn selected" style="background:#ffffff" data-color="#ffffff" onclick="selectColor(this)"></div>
+    <div class="color-btn" style="background:#ffdd88" data-color="#ffdd88" onclick="selectColor(this)"></div>
+    <div class="color-btn" style="background:#88ccff" data-color="#88ccff" onclick="selectColor(this)"></div>
+    <div class="color-btn" style="background:#aaffaa" data-color="#aaffaa" onclick="selectColor(this)"></div>
+    <div class="color-btn" style="background:#ffaaaa" data-color="#ffaaaa" onclick="selectColor(this)"></div>
+    <div class="color-btn" style="background:#cc88ff" data-color="#cc88ff" onclick="selectColor(this)"></div>
+  </div>
+
+  <p class="section-label" data-i="sec-vol">Volumen binaural</p>
+  <div class="volume-row">
+    <span>🔇</span>
+    <input type="range" min="0" max="1" step="0.01" value="0.3" id="vol-slider" oninput="updateVolume(this.value)">
+    <span>🔊</span>
+  </div>
+
+  <div class="headphone-note" data-i="headphone">🎧 <strong>Auriculares obligatorios</strong> para el efecto binaural.</div>
+
+  <p class="section-label">Duración de sesión</p>
+  <div class="timer-row" id="timer-row">
+    <button class="timer-chip active" data-mins="0" onclick="setTimer(0,this)">∞ Libre</button>
+    <button class="timer-chip" data-mins="10" onclick="setTimer(10,this)">10 min</button>
+    <button class="timer-chip" data-mins="20" onclick="setTimer(20,this)">20 min</button>
+    <button class="timer-chip" data-mins="30" onclick="setTimer(30,this)">30 min</button>
+    <button class="timer-chip" data-mins="60" onclick="setTimer(60,this)">60 min</button>
+  </div>
+
+  <button id="start-btn" onclick="showBreathing()" data-i="btn-start">▶ INICIAR SESIÓN</button>
+  <p class="tip" data-i="tip">💡 Ojos cerrados, cara a ~25cm. Habitación oscura. Mínimo 10 min.</p>
+  <p class="warning" data-i="warn">⚠️ No usar si tienes epilepsia. Detén si sientes molestia.</p>
+
+  </div><!-- /tab-session -->
+
+  <!-- TAB: BANDS -->
+  <div class="tab-panel" id="tab-bands">
+    <p class="section-label">Espectro completo de ondas cerebrales</p>
+    <div class="bands-list" id="bands-list"><!-- generated by JS --></div>
+    <div class="science-note">📚 Fuentes: Iaccarino et al. <em>Nature</em> 2016 · Colzato et al. <em>Front. Psychiatry</em> 2017 · Lane et al. <em>Physiol. Behav.</em> 1998 · Steriade et al. <em>Science</em> 1993</div>
+  </div><!-- /tab-bands -->
+</div>
+
+<!-- ═══════════ HISTORY BTN ═══════════ -->
+<button id="history-btn" onclick="toggleHistory()">📋 Historial</button>
+
+<!-- ═══════════ HISTORY PANEL ═══════════ -->
+<div id="history-panel">
+  <div class="history-header">
+    <span class="history-title">📋 Historial</span>
+    <button class="history-close" onclick="toggleHistory()">✕</button>
+  </div>
+  <div id="history-stats-row" class="history-stats" style="margin-top:0;margin-bottom:20px;border-top:none;padding-top:0;"></div>
+  <div id="history-list"></div>
+  <button class="history-clear" onclick="clearHistory()">🗑 Borrar historial</button>
+</div>
+
+<!-- ═══════════ BREATHING SCREEN — FULLSCREEN ═══════════ -->
+<div id="breath-screen">
+  <div class="breath-icon" id="breath-icon"></div>
+  <div class="breath-title" id="breath-title"></div>
+  <div class="breath-subtitle" id="breath-subtitle"></div>
+  <div class="breath-body">
+    <div class="breath-pattern" id="breath-pattern"></div>
+    <div class="breath-why" id="breath-why"></div>
+  </div>
+  <div class="breath-btn-row">
+    <button class="breath-skip" id="btn-skip" onclick="cancelBreath()">✕ Cancelar</button>
+    <button class="breath-go" id="btn-go" onclick="beginSession()">↵ Iniciar</button>
+  </div>
+</div>
+
+<!-- ═══════════ LIVE BREATH OVERLAY (during session) ═══════════ -->
+<div id="breath-live-overlay">
+  <div id="breath-live-phase">INHALA</div>
+  <div id="breath-live-count">4</div>
+  <div id="breath-live-cycle"></div>
+</div>
+
+<!-- ═══════════ RUNNING ═══════════ -->
+<button id="stop-btn" onclick="stopSession()" data-i="btn-stop">⏹ DETENER</button>
+<div id="running-info">
+  <div id="running-timer">00:00</div>
+  <div id="running-hz"></div>
+  <div id="running-alarm"></div>
+</div>
+
+<!-- ═══════════ CONGRATS SCREEN ═══════════ -->
+<div id="congrats-screen">
+  <div id="congrats-emoji">🧠</div>
+  <div id="congrats-title">¡Sesión completada!</div>
+  <div id="congrats-sub" id="congrats-sub"></div>
+  <button id="congrats-btn" onclick="closeCongrats()">↵ Volver</button>
+</div>
+
+<script>
+// ─── LANGUAGE ───────────────────────────────────────────────
+let lang = 'es';
+
+const i18n = {
+  es: {
+    'title': '⚡ Entrainment',
+    'subtitle': 'Luz + Audio binaural — usar auriculares',
+    'sec-presets': 'Presets',
+    'sec-freq': 'Frecuencia manual',
+    'sec-color': 'Color de flash',
+    'sec-vol': 'Volumen binaural',
+    'headphone': '🎧 <strong>Auriculares obligatorios</strong> para el efecto binaural.',
+    'btn-start': '▶ INICIAR SESIÓN',
+    'btn-stop': '⏹ DETENER',
+    'tip': '💡 Ojos cerrados, cara a ~25cm. Habitación oscura. Mínimo 10 min.',
+    'warn': '⚠️ No usar si tienes epilepsia. Detén si sientes molestia.',
+    'delta':'Delta','theta':'Theta','alfa':'Alfa','beta':'Beta','gamma':'Gamma',
+    'btn-skip': 'Saltar →',
+    'btn-go': '✓ Listo, iniciar',
+  },
+  en: {
+    'title': '⚡ Entrainment',
+    'subtitle': 'Light + Binaural Audio — headphones required',
+    'sec-presets': 'Presets',
+    'sec-freq': 'Custom frequency',
+    'sec-color': 'Flash color',
+    'sec-vol': 'Binaural volume',
+    'headphone': '🎧 <strong>Headphones required</strong> for the binaural effect.',
+    'btn-start': '▶ START SESSION',
+    'btn-stop': '⏹ STOP',
+    'tip': '💡 Eyes closed, face ~25cm from screen. Dark room. At least 10 min.',
+    'warn': '⚠️ Do not use if you have epilepsy. Stop if you feel discomfort.',
+    'delta':'Delta','theta':'Theta','alfa':'Alpha','beta':'Beta','gamma':'Gamma',
+    'btn-skip': 'Skip →',
+    'btn-go': '✓ Ready, start',
+  }
+};
+
+function toggleLang() {
+  lang = lang === 'es' ? 'en' : 'es';
+  document.getElementById('lang-btn').textContent = lang === 'es' ? 'EN' : 'ES';
+  applyLang();
+  buildPresets();
+  updateWaveBadge(hz);
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-i]').forEach(el => {
+    const key = el.getAttribute('data-i');
+    if (i18n[lang][key] !== undefined) el.innerHTML = i18n[lang][key];
+  });
+}
+
+// ─── PRESETS DATA ─────────────────────────────────────────────
+const presets = [
+  {
+    hz: 2, color: '#4455ff', emoji: '🌊',
+    name:  { es: 'Sueño',       en: 'Sleep'      },
+    wave:  { es: 'Delta',       en: 'Delta'       },
+    breath: {
+      icon: '🌙',
+      title: { es: 'Respiración 4-7-8',           en: '4-7-8 Breathing' },
+      sub:   { es: 'Para relajación profunda',     en: 'For deep relaxation' },
+      pattern: {
+        es: '<strong>Inhala</strong> 4 seg → <strong>Sostén</strong> 7 seg → <strong>Exhala</strong> 8 seg\nRepite 4 veces antes de iniciar.',
+        en: '<strong>Inhale</strong> 4 sec → <strong>Hold</strong> 7 sec → <strong>Exhale</strong> 8 sec\nRepeat 4 times before starting.'
+      },
+      why: {
+        es: 'La exhalación larga activa el sistema nervioso parasimpático, reduciendo el ritmo cardíaco y preparando el cuerpo para el sueño profundo.',
+        en: 'The long exhale activates the parasympathetic nervous system, slowing heart rate and preparing the body for deep sleep.'
+      }
+    }
+  },
+  {
+    hz: 4, color: '#aa55ff', emoji: '🌀',
+    name:  { es: 'Meditación',  en: 'Meditation' },
+    wave:  { es: 'Theta',       en: 'Theta'       },
+    breath: {
+      icon: '🧘',
+      title: { es: 'Respiración coherente',        en: 'Coherent Breathing' },
+      sub:   { es: 'Para entrar en estado meditativo', en: 'To enter a meditative state' },
+      pattern: {
+        es: '<strong>Inhala</strong> 5 seg → <strong>Exhala</strong> 5 seg\nRitmo constante, sin pausas. 5 ciclos.',
+        en: '<strong>Inhale</strong> 5 sec → <strong>Exhale</strong> 5 sec\nSteady rhythm, no pauses. 5 cycles.'
+      },
+      why: {
+        es: 'La respiración a 5 seg/5 seg (~6 ciclos por minuto) sincroniza el corazón y el cerebro, facilitando el acceso a estados theta.',
+        en: 'Breathing at 5/5 sec (~6 cycles per minute) synchronizes heart and brain, facilitating access to theta states.'
+      }
+    }
+  },
+  {
+    hz: 6, color: '#cc77ff', emoji: '✨',
+    name:  { es: 'Creatividad', en: 'Creativity' },
+    wave:  { es: 'Theta',       en: 'Theta'       },
+    breath: {
+      icon: '🎨',
+      title: { es: 'Respiración alternada (Nadi Shodhana)', en: 'Alternate Nostril (Nadi Shodhana)' },
+      sub:   { es: 'Para abrir flujo creativo',    en: 'To open creative flow' },
+      pattern: {
+        es: 'Tapa fosa derecha → <strong>Inhala</strong> por izquierda 4 seg\nTapa izquierda → <strong>Exhala</strong> por derecha 4 seg\nRepite alternando. 6 ciclos.',
+        en: 'Cover right nostril → <strong>Inhale</strong> left 4 sec\nCover left → <strong>Exhale</strong> right 4 sec\nAlternate. 6 cycles.'
+      },
+      why: {
+        es: 'Equilibra los hemisferios cerebrales, reduciendo el pensamiento analítico y abriendo el acceso al pensamiento divergente y creativo.',
+        en: 'Balances brain hemispheres, reducing analytical thinking and opening access to divergent, creative thought.'
+      }
+    }
+  },
+  {
+    hz: 10, color: '#cc99ff', emoji: '😌',
+    name:  { es: 'Calma',       en: 'Calm'        },
+    wave:  { es: 'Alfa',        en: 'Alpha'        },
+    breath: {
+      icon: '🍃',
+      title: { es: 'Respiración box (cuadrada)',   en: 'Box Breathing' },
+      sub:   { es: 'Para calma con alerta',        en: 'For calm alertness' },
+      pattern: {
+        es: '<strong>Inhala</strong> 4 → <strong>Sostén</strong> 4 → <strong>Exhala</strong> 4 → <strong>Sostén</strong> 4\nRepite 4 veces.',
+        en: '<strong>Inhale</strong> 4 → <strong>Hold</strong> 4 → <strong>Exhale</strong> 4 → <strong>Hold</strong> 4\nRepeat 4 times.'
+      },
+      why: {
+        es: 'La retención simétrica mantiene el sistema nervioso en equilibrio — ni muy activado ni dormido. Perfecta para alfa.',
+        en: 'Symmetric holds keep the nervous system in balance — neither over-activated nor drowsy. Perfect for alpha.'
+      }
+    }
+  },
+  {
+    hz: 14, color: '#aaffaa', emoji: '🎯',
+    name:  { es: 'Enfoque',     en: 'Focus'       },
+    wave:  { es: 'Beta',        en: 'Beta'         },
+    breath: {
+      icon: '🎯',
+      title: { es: 'Respiración 4-6',              en: '4-6 Breathing' },
+      sub:   { es: 'Para enfoque sostenido',        en: 'For sustained focus' },
+      pattern: {
+        es: '<strong>Inhala</strong> 4 seg → <strong>Exhala</strong> 6 seg\nSin pausas. 5 ciclos antes de iniciar.',
+        en: '<strong>Inhale</strong> 4 sec → <strong>Exhale</strong> 6 sec\nNo pauses. 5 cycles before starting.'
+      },
+      why: {
+        es: 'Exhalación ligeramente más larga que la inhalación mantiene el CO₂ en equilibrio y favorece la atención sin tensión.',
+        en: 'Slightly longer exhale than inhale keeps CO₂ balanced and promotes attention without tension.'
+      }
+    }
+  },
+  {
+    hz: 18, color: '#ffdd88', emoji: '⚡',
+    name:  { es: 'Energía',     en: 'Energy'      },
+    wave:  { es: 'Beta',        en: 'Beta'         },
+    breath: {
+      icon: '🔥',
+      title: { es: 'Respiración de Fuego (Kapalabhati)', en: 'Breath of Fire (Kapalabhati)' },
+      sub:   { es: 'Para activar energía inmediata', en: 'For immediate energy activation' },
+      pattern: {
+        es: '<strong>Exhala</strong> fuerte y rápido por nariz (abdomen se contrae)\n→ <strong>Inhalación pasiva</strong> automática\nRitmo: 1–2 respiraciones/seg. 3 rondas de 30.',
+        en: '<strong>Exhale</strong> forcefully through nose (abdomen contracts)\n→ <strong>Passive inhale</strong> automatic\nPace: 1–2 breaths/sec. 3 rounds of 30.'
+      },
+      why: {
+        es: 'Las exhalaciones forzadas activan el sistema simpático, generan calor y aumentan la oxigenación cerebral — efecto estimulante inmediato.',
+        en: 'Forced exhales activate the sympathetic system, generate heat, and increase brain oxygenation — immediate stimulant effect.'
+      }
+    }
+  },
+  {
+    hz: 25, color: '#ffaa44', emoji: '🔥',
+    name:  { es: 'Alerta',      en: 'Alert'       },
+    wave:  { es: 'Beta',        en: 'Beta'         },
+    breath: {
+      icon: '⚡',
+      title: { es: 'Wim Hof',                      en: 'Wim Hof Method' },
+      sub:   { es: 'Para máxima activación',        en: 'For maximum activation' },
+      pattern: {
+        es: '<strong>30 respiraciones</strong> profundas y rápidas por la boca\n→ <strong>Exhala todo</strong> y sostén sin aire (30–60 seg)\n→ <strong>Inhala profundo</strong>, sostén 15 seg\nRepite 3 rondas.',
+        en: '<strong>30 deep fast breaths</strong> through the mouth\n→ <strong>Exhale all</strong> and hold empty (30–60 sec)\n→ <strong>Deep inhale</strong>, hold 15 sec\nRepeat 3 rounds.'
+      },
+      why: {
+        es: '⚠️ Nunca en agua ni manejando. La hiperventilación transitoria activa el sistema simpático y libera adrenalina.',
+        en: '⚠️ Never in water or while driving. Transient hyperventilation activates the sympathetic system and releases adrenaline.'
+      }
+    }
+  },
+  {
+    hz: 40, color: '#88ccff', emoji: '🧠',
+    name:  { es: 'Claridad',    en: 'Clarity'     },
+    wave:  { es: 'Gamma',       en: 'Gamma'        },
+    breath: {
+      icon: '🧠',
+      title: { es: 'Respiración 4-4',              en: '4-4 Breathing' },
+      sub:   { es: 'Para máxima claridad cognitiva', en: 'For peak cognitive clarity' },
+      pattern: {
+        es: '<strong>Inhala</strong> 4 seg → <strong>Exhala</strong> 4 seg\nConstante, sin pausas. 6 ciclos.',
+        en: '<strong>Inhale</strong> 4 sec → <strong>Exhale</strong> 4 sec\nSteady, no pauses. 6 cycles.'
+      },
+      why: {
+        es: 'Ritmo neutro que mantiene el cerebro en estado de alerta máxima sin tensión. Potencia el efecto gamma de integración cognitiva.',
+        en: 'Neutral rhythm that keeps the brain in maximum alert without tension. Enhances the gamma cognitive integration effect.'
+      }
+    }
+  },
+  {
+    hz: 70, color: '#ffffff', emoji: '🚀',
+    name:  { es: 'Máximo',      en: 'Maximum'     },
+    wave:  { es: 'Gamma',       en: 'Gamma'        },
+    breath: {
+      icon: '🚀',
+      title: { es: 'Respiración de Fuego rápida',  en: 'Fast Breath of Fire' },
+      sub:   { es: 'Para estimulación máxima',      en: 'For maximum stimulation' },
+      pattern: {
+        es: '<strong>Respiración de fuego</strong> al máximo ritmo posible\n2 rondas de 40 respiraciones\nPausa de 30 seg entre rondas.',
+        en: '<strong>Breath of fire</strong> at maximum possible pace\n2 rounds of 40 breaths\n30 sec pause between rounds.'
+      },
+      why: {
+        es: '⚠️ Solo si ya tienes experiencia con respiración de fuego. Puede causar mareo leve — normal, es transitorio.',
+        en: '⚠️ Only if you already have experience with breath of fire. May cause mild dizziness — normal, it\'s transient.'
+      }
+    }
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────────
+let hz = 10;
+let flashColor = '#ffffff';
+let volume = 0.3;
+let running = false;
+let flashInterval = null;
+let timerInterval = null;
+let seconds = 0;
+let flashState = false;
+let currentPreset = presets.find(p => p.hz === 10);
+const overlay = document.getElementById('flash-overlay');
+
+let audioCtx = null, leftOsc = null, rightOsc = null, leftGain = null, rightGain = null, merger = null;
+const BASE_FREQ = 200;
+
+// ─── WAVE INFO ────────────────────────────────────────────────
+function getWaveInfo(h) {
+  if (h < 4)  return { label: { es:'Delta', en:'Delta' }, color: '#4455ff' };
+  if (h < 8)  return { label: { es:'Theta', en:'Theta' }, color: '#aa55ff' };
+  if (h < 13) return { label: { es:'Alfa',  en:'Alpha' }, color: '#cc99ff' };
+  if (h < 30) return { label: { es:'Beta',  en:'Beta'  }, color: '#ffdd88' };
+  return              { label: { es:'Gamma', en:'Gamma' }, color: '#88ccff' };
+}
+
+function updateWaveBadge(h) {
+  const info = getWaveInfo(h);
+  const badge = document.getElementById('wave-badge');
+  badge.textContent = info.label[lang];
+  badge.style.color = info.color;
+  badge.style.borderColor = info.color;
+  badge.style.background = info.color + '22';
+}
+
+// ─── PRESETS ──────────────────────────────────────────────────
+function buildPresets() {
+  const grid = document.getElementById('preset-grid');
+  grid.innerHTML = '';
+  presets.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'preset' + (p.hz === hz ? ' active' : '');
+    div.style.cssText = `--color:${p.color}`;
+    div.innerHTML = `<span class="emoji">${p.emoji}</span><div class="name">${p.name[lang]}</div><div class="hz-label">${p.hz} Hz · ${p.wave[lang]}</div>`;
+    div.onclick = () => selectPreset(p, div);
+    grid.appendChild(div);
+  });
+}
+
+function selectPreset(p, el) {
+  document.querySelectorAll('.preset').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  hz = p.hz;
+  flashColor = p.color;
+  currentPreset = p;
+  document.getElementById('freq-slider').value = hz;
+  document.getElementById('freq-display').innerHTML = `${hz} <span>Hz</span>`;
+  updateWaveBadge(hz);
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.toggle('selected', b.dataset.color === flashColor));
+  if (running) { clearInterval(flashInterval); startFlash(); updateBinaural(); }
+}
+
+// ─── FREQ SLIDER ──────────────────────────────────────────────
+function updateFreq(val) {
+  hz = parseFloat(val);
+  // find closest preset or null
+  const closest = presets.reduce((a, b) => Math.abs(b.hz - hz) < Math.abs(a.hz - hz) ? b : a);
+  currentPreset = Math.abs(closest.hz - hz) < 1 ? closest : null;
+  document.getElementById('freq-display').innerHTML = `${hz} <span>Hz</span>`;
+  updateWaveBadge(hz);
+  document.querySelectorAll('.preset').forEach(x => x.classList.remove('active'));
+  if (running) { clearInterval(flashInterval); startFlash(); updateBinaural(); }
+}
+
+// ─── COLOR ────────────────────────────────────────────────────
+function selectColor(el) {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  flashColor = el.dataset.color;
+}
+
+// ─── VOLUME ───────────────────────────────────────────────────
+function updateVolume(val) {
+  volume = parseFloat(val);
+  if (leftGain) leftGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.1);
+  if (rightGain) rightGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.1);
+}
+
+// ─── TIMER ────────────────────────────────────────────────────
+let sessionTimerMins = 0;
+let alarmTimeout = null;
+let guideMode = false;
+
+function setTimer(mins, el) {
+  sessionTimerMins = mins;
+  document.querySelectorAll('.timer-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── BREATHING SCREEN ─────────────────────────────────────────
+function showBreathing() {
+  const p = currentPreset || presets.find(x => x.hz === 10);
+  const b = p.breath;
+  document.getElementById('breath-icon').textContent = b.icon;
+  document.getElementById('breath-title').textContent = b.title[lang];
+  document.getElementById('breath-subtitle').textContent = b.sub[lang];
+  document.getElementById('breath-pattern').innerHTML = b.pattern[lang].replace(/\n/g, '<br>');
+  document.getElementById('breath-why').textContent = b.why[lang];
+  document.getElementById('btn-skip').textContent = lang === 'es' ? '✕ Cancelar' : '✕ Cancel';
+  document.getElementById('btn-go').textContent = lang === 'es' ? '↵ Iniciar' : '↵ Start';
+  document.getElementById('main-ui').style.display = 'none';
+  document.getElementById('breath-screen').classList.add('active');
+}
+
+function cancelBreath() {
+  document.getElementById('breath-screen').classList.remove('active');
+  document.getElementById('main-ui').style.display = 'block';
+}
+
+function beginSession() {
+  document.getElementById('breath-screen').classList.remove('active');
+  startSession();
+}
+
+function startSessionWithBreath() { showBreathing(); }
+
+// ─── LIVE BREATH GUIDE (during session) ──────────────────────
+let breathLiveInterval = null;
+let breathLiveStepIdx = 0;
+let breathLiveCountVal = 0;
+let breathLiveSteps = [];
+let breathLiveCycle = 0;
+
+function startBreathLive() {
+  const p = currentPreset || presets.find(x => x.hz === 10);
+  if (!p || !p.breath) return;
+  breathLiveSteps = buildGuideSteps(p.breath);
+  if (!breathLiveSteps.length) return;
+  breathLiveStepIdx = 0;
+  breathLiveCountVal = breathLiveSteps[0].secs;
+  breathLiveCycle = 1;
+  renderBreathLive();
+  document.getElementById('breath-live-overlay').classList.add('active');
+  breathLiveInterval = setInterval(tickBreathLive, 1000);
+}
+
+function renderBreathLive() {
+  document.getElementById('breath-live-phase').textContent = '';
+  document.getElementById('breath-live-count').textContent = breathLiveCountVal;
+  document.getElementById('breath-live-cycle').textContent = (lang==='es'?'Ciclo':'Cycle') + ' ' + breathLiveCycle;
+}
+
+function tickBreathLive() {
+  breathLiveCountVal--;
+  if (breathLiveCountVal <= 0) {
+    breathLiveStepIdx = (breathLiveStepIdx + 1) % breathLiveSteps.length;
+    if (breathLiveStepIdx === 0) breathLiveCycle++;
+    breathLiveCountVal = breathLiveSteps[breathLiveStepIdx].secs;
+  }
+  renderBreathLive();
+}
+
+function stopBreathLive() {
+  clearInterval(breathLiveInterval);
+  breathLiveInterval = null;
+  document.getElementById('breath-live-overlay').classList.remove('active');
+}
+
+function buildGuideSteps(b) {
+  // parse steps from preset: 4-7-8, 4-4, box, etc.
+  const pattern = b.pattern['es'];
+  const steps = [];
+  const inhale = pattern.match(/Inhala[^→\n]*([\d]+)\s*seg/i);
+  const hold1  = pattern.match(/Sost[eé]n[^→\n]*([\d]+)\s*seg/i);
+  const exhale = pattern.match(/Exhala[^→\n]*([\d]+)\s*seg/i);
+  if (inhale) steps.push({ phase: lang==='es'?'INHALA':'INHALE', secs: parseInt(inhale[1]) });
+  if (hold1)  steps.push({ phase: lang==='es'?'SOSTÉN':'HOLD',   secs: parseInt(hold1[1])  });
+  if (exhale) steps.push({ phase: lang==='es'?'EXHALA':'EXHALE', secs: parseInt(exhale[1]) });
+  // box 4th hold
+  const box = b.pattern['es'].match(/Sost[eé]n.*[\n\r].*Sost[eé]n[^\d]*([\d]+)/i);
+  if (box && hold1) steps.push({ phase: lang==='es'?'SOSTÉN':'HOLD', secs: parseInt(box[1]) });
+  // fallback generic
+  if (!steps.length) {
+    steps.push({ phase: 'INHALA', secs: 4 });
+    steps.push({ phase: 'EXHALA', secs: 4 });
+  }
+  return steps;
+}
+
+
+// ─── HISTORY ──────────────────────────────────────────────────
+let sessionHistory = JSON.parse(localStorage.getItem('entrainment_history') || '[]');
+
+function saveSession(secs) {
+  if (secs < 10) return; // ignore very short sessions
+  const p = currentPreset;
+  const entry = {
+    ts: Date.now(),
+    hz: hz,
+    name: p ? p.name['es'] : hz + ' Hz',
+    wave: getWaveInfo(hz).label['es'],
+    waveColor: getWaveInfo(hz).color,
+    secs: secs
+  };
+  sessionHistory.unshift(entry);
+  if (sessionHistory.length > 50) sessionHistory = sessionHistory.slice(0, 50);
+  localStorage.setItem('entrainment_history', JSON.stringify(sessionHistory));
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('history-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const statsRow = document.getElementById('history-stats-row');
+
+  if (!sessionHistory.length) {
+    list.innerHTML = '<div class="history-empty">Aún no hay sesiones registradas.<br>Completa tu primera sesión para verla aquí.</div>';
+    statsRow.innerHTML = '';
+    return;
+  }
+
+  // Stats
+  const totalSecs = sessionHistory.reduce((a, e) => a + e.secs, 0);
+  const totalMins = Math.round(totalSecs / 60);
+  const avgSecs = Math.round(totalSecs / sessionHistory.length);
+  statsRow.innerHTML = `
+    <div class="hstat"><div class="hstat-num">${sessionHistory.length}</div><div class="hstat-label">Sesiones</div></div>
+    <div class="hstat"><div class="hstat-num">${totalMins}</div><div class="hstat-label">Minutos totales</div></div>
+    <div class="hstat"><div class="hstat-num">${Math.floor(avgSecs/60)}:${String(avgSecs%60).padStart(2,'0')}</div><div class="hstat-label">Duración media</div></div>
+    <div class="hstat"><div class="hstat-num">${sessionHistory[0].hz}</div><div class="hstat-label">Última frecuencia</div></div>`;
+
+  // List
+  list.innerHTML = sessionHistory.map(e => {
+    const d = new Date(e.ts);
+    const dateStr = d.toLocaleDateString('es-ES', { day:'numeric', month:'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+    const dur = Math.floor(e.secs/60) + ':' + String(e.secs%60).padStart(2,'0');
+    return `<div class="history-entry">
+      <div class="history-entry-top">
+        <div class="history-entry-name">${e.name}</div>
+        <div class="history-entry-dur">${dur}</div>
+      </div>
+      <div class="history-entry-meta">
+        <span class="history-entry-wave" style="color:${e.waveColor};border-color:${e.waveColor}">${e.wave}</span>
+        ${e.hz} Hz · ${dateStr}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearHistory() {
+  if (!confirm('¿Borrar todo el historial?')) return;
+  sessionHistory = [];
+  localStorage.removeItem('entrainment_history');
+  renderHistory();
+}
+
+// ─── AUDIO ────────────────────────────────────────────────────
+function startBinaural() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  merger = audioCtx.createChannelMerger(2);
+  merger.connect(audioCtx.destination);
+  leftGain = audioCtx.createGain(); leftGain.gain.value = volume;
+  rightGain = audioCtx.createGain(); rightGain.gain.value = volume;
+  leftGain.connect(merger, 0, 0);
+  rightGain.connect(merger, 0, 1);
+  leftOsc = audioCtx.createOscillator(); rightOsc = audioCtx.createOscillator();
+  leftOsc.type = rightOsc.type = 'sine';
+  leftOsc.frequency.value = BASE_FREQ;
+  rightOsc.frequency.value = BASE_FREQ + hz;
+  leftOsc.connect(leftGain); rightOsc.connect(rightGain);
+  leftOsc.start(); rightOsc.start();
+}
+
+function updateBinaural() {
+  if (!audioCtx) return;
+  leftOsc.frequency.setTargetAtTime(BASE_FREQ, audioCtx.currentTime, 0.1);
+  rightOsc.frequency.setTargetAtTime(BASE_FREQ + hz, audioCtx.currentTime, 0.1);
+}
+
+function stopBinaural() {
+  if (!audioCtx) return;
+  try { leftOsc.stop(); rightOsc.stop(); audioCtx.close(); } catch(e){}
+  audioCtx = leftOsc = rightOsc = leftGain = rightGain = merger = null;
+}
+
+// ─── FLASH ────────────────────────────────────────────────────
+let rafRunning = false;
+let lastFlipTime = 0;
+
+function startFlash() {
+  if (hz > 60) { startFlashRAF(); return; }
+  const interval = (1000 / hz) / 2;
+  flashState = false;
+  flashInterval = setInterval(() => {
+    flashState = !flashState;
+    overlay.style.background = flashState ? flashColor : '#000000';
+  }, interval);
+}
+
+function startFlashRAF() {
+  rafRunning = true; lastFlipTime = performance.now(); flashState = false;
+  requestAnimationFrame(rafFlash);
+}
+
+function rafFlash(now) {
+  if (!rafRunning) return;
+  const half = (1000 / hz) / 2;
+  if (now - lastFlipTime >= half) {
+    flashState = !flashState;
+    overlay.style.background = flashState ? flashColor : '#000000';
+    lastFlipTime = now;
+  }
+  requestAnimationFrame(rafFlash);
+}
+
+// ─── SESSION ──────────────────────────────────────────────────
+function startSession() {
+  running = true; seconds = 0; rafRunning = false;
+  document.getElementById('main-ui').style.display = 'none';
+  document.getElementById('history-btn').style.display = 'none';
+  document.getElementById('lang-btn').style.display = 'none';
+  document.getElementById('stop-btn').style.display = 'block';
+  document.getElementById('running-info').style.display = 'block';
+  document.documentElement.style.setProperty('--flash-color', flashColor);
+  const waveLabel = getWaveInfo(hz).label[lang];
+  document.getElementById('running-hz').textContent = hz + ' Hz · ' + waveLabel;
+
+  // alarm
+  clearTimeout(alarmTimeout);
+  const alarmEl = document.getElementById('running-alarm');
+  if (sessionTimerMins > 0) {
+    alarmTimeout = setTimeout(() => {
+      stopSession(true); // true = completed
+    }, sessionTimerMins * 60 * 1000);
+  } else {
+    alarmEl.textContent = '';
+  }
+
+  startFlash();
+  startBinaural();
+  startBreathLive();
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds/60)).padStart(2,'0');
+    const s = String(seconds%60).padStart(2,'0');
+    document.getElementById('running-timer').textContent = `${m}:${s}`;
+    // update alarm countdown
+    if (sessionTimerMins > 0) {
+      const remaining = sessionTimerMins * 60 - seconds;
+      if (remaining > 0) {
+        const rm = String(Math.floor(remaining/60)).padStart(2,'0');
+        const rs = String(remaining%60).padStart(2,'0');
+        alarmEl.textContent = '⏱ ' + rm + ':' + rs;
+      }
+    }
+  }, 1000);
+}
+
+function stopSession(completed = false) {
+  saveSession(seconds);
+  running = false; rafRunning = false;
+  clearInterval(flashInterval); clearInterval(timerInterval);
+  clearTimeout(alarmTimeout);
+  overlay.style.background = 'transparent';
+  stopBinaural();
+  stopBreathLive();
+  document.getElementById('stop-btn').style.display = 'none';
+  document.getElementById('running-info').style.display = 'none';
+  document.getElementById('running-alarm').textContent = '';
+  document.getElementById('history-btn').style.display = 'block';
+  document.getElementById('lang-btn').style.display = 'block';
+  if (completed) {
+    showCongrats();
+  } else {
+    document.getElementById('main-ui').style.display = 'block';
+  }
+}
+
+function showCongrats() {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const durStr = mins > 0 ? `${mins} min ${secs > 0 ? secs + ' seg' : ''}` : `${secs} seg`;
+  const p = currentPreset;
+  const name = p ? p.name[lang] : hz + ' Hz';
+  document.getElementById('congrats-sub').textContent = `${durStr} · ${name} · ${hz} Hz`;
+  document.getElementById('congrats-screen').classList.add('active');
+}
+
+function closeCongrats() {
+  document.getElementById('congrats-screen').classList.remove('active');
+  document.getElementById('main-ui').style.display = 'block';
+}
+
+// ─── TABS ─────────────────────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ─── BANDS DATA ───────────────────────────────────────────────
+const allBands = [
+  {
+    name: 'Infra-lento / Epsilon',
+    hz: '< 0.5 Hz',
+    color: '#334488',
+    desc: 'Las oscilaciones más lentas del cerebro. Modulan la excitabilidad global de las redes neuronales. Documentadas durante estados contemplativos extremos en meditadores avanzados tibetanos (>30 años de práctica).',
+    uses: '<strong>Meditación profunda avanzada</strong> · Estados alterados de consciencia · Regulación del ciclo sueño-vigilia a largo plazo',
+    subs: [],
+    tryHz: null,
+    note: 'No reproducible con binaural beats estándar por sus frecuencias extremadamente bajas.'
+  },
+  {
+    name: 'Delta',
+    hz: '0.5 – 4 Hz',
+    color: '#4455ff',
+    desc: 'Las ondas Delta dominan el sueño NREM profundo (etapas 3-4). Durante Delta, el cerebro secreta hormona de crecimiento, consolida la memoria declarativa y realiza "limpieza" de desechos metabólicos (sistema glinfático).',
+    uses: '<strong>Sueño profundo regenerativo</strong> · Recuperación física · Consolidación de memoria · Reducción del dolor crónico',
+    subs: [
+      { label: 'Delta baja 0.5–2 Hz', hz: 1 },
+      { label: 'Delta alta 2–4 Hz', hz: 3 }
+    ],
+    tryHz: 2,
+    note: 'Estudio clave: Becher et al. PLOS ONE 2015 — la estimulación Delta previa al sueño aumentó las ondas lentas (SWS) medidas por EEG.'
+  },
+  {
+    name: 'Theta',
+    hz: '4 – 8 Hz',
+    color: '#aa55ff',
+    desc: 'Estado característico de la meditación profunda, el hipnagogo (justo antes de dormir) y el sueño REM. El hipocampo genera ondas Theta para coordinar la consolidación de memorias. Alto contenido Theta correlaciona con creatividad y pensamiento divergente.',
+    uses: '<strong>Meditación</strong> · Creatividad divergente · Aprendizaje acelerado · Acceso a memoria emocional · Estado de flujo',
+    subs: [
+      { label: 'Theta baja 4–6 Hz', hz: 5 },
+      { label: 'Theta alta 6–8 Hz', hz: 7 }
+    ],
+    tryHz: 6,
+    note: 'Colzato et al. Front. Psychiatry 2017: estimulación a 6 Hz mejoró significativamente el pensamiento creativo divergente (Alternate Uses Task).'
+  },
+  {
+    name: 'Alpha',
+    hz: '8 – 13 Hz',
+    color: '#cc99ff',
+    desc: 'Estado de relajación alerta. Predomina cuando los ojos están cerrados en descanso. Reduce la actividad cortical "de fondo" (inhibición activa), mejora la señal-ruido en procesamiento sensorial. Marcadamente reducido en personas con ansiedad crónica.',
+    uses: '<strong>Relajación con consciencia</strong> · Reducción de ansiedad · Preparación para meditación · Recuperación post-estrés · Entrada al flujo',
+    subs: [
+      { label: 'Alpha baja 8–10 Hz', hz: 9 },
+      { label: 'Alpha alta 10–13 Hz', hz: 11 }
+    ],
+    tryHz: 10,
+    note: 'Wahbeh et al. Psychological Reports 2007: meta-análisis de ensayos clínicos muestra reducción significativa de ansiedad con estimulación Alpha.'
+  },
+  {
+    name: 'SMR — Sensorimotor Rhythm',
+    hz: '12 – 15 Hz',
+    color: '#88ddaa',
+    desc: 'Banda específica de la corteza sensoriomotora. Aparece durante quietud motora activa (estar quieto sin dormirse). Extensamente usada en protocolos de neurofeedback para TDAH, epilepsia y mejora del sueño. Punto de transición entre Alpha y Beta.',
+    uses: '<strong>Neurofeedback para TDAH</strong> · Reducción de epilepsia (protocolos clínicos) · Calidad del sueño · Control motor fino',
+    subs: [],
+    tryHz: 13,
+    note: 'Sterman & Friar (1972): primer estudio que demostró que el entrenamiento SMR reducía convulsiones en pacientes epilépticos. Base del neurofeedback moderno.'
+  },
+  {
+    name: 'Mu',
+    hz: '8 – 13 Hz',
+    color: '#ffaa88',
+    desc: 'Oscilaciones similares a Alpha pero localizadas en la corteza sensoriomotora. Se suprimen al observar o ejecutar movimientos — base de las neuronas espejo. Su supresión al observar a otros indica activación del sistema especular, vinculado a empatía y aprendizaje por imitación.',
+    uses: '<strong>Neuronas espejo</strong> · Aprendizaje motor por observación · Empatía neural · Investigación en autismo',
+    subs: [],
+    tryHz: 10,
+    note: 'La onda Mu tiene la misma frecuencia que Alpha pero diferente localización (corteza motora) y función. Difícil de diferenciar sin EEG multicanal.'
+  },
+  {
+    name: 'Beta',
+    hz: '13 – 30 Hz',
+    color: '#ffdd88',
+    desc: 'Estado activo y despierto. Pensamiento analítico, toma de decisiones, atención sostenida. Beta alta se asocia a estrés y rumiación. Beta baja es ideal para trabajo cognitivo sin tensión excesiva. Predomina durante actividad motora activa.',
+    uses: '<strong>Concentración activa</strong> · Tarea cognitiva · Pre-entrenamiento · Toma de decisiones · Estado de alerta',
+    subs: [
+      { label: 'Beta baja 13–16 Hz', hz: 14 },
+      { label: 'Beta media 16–20 Hz', hz: 18 },
+      { label: 'Beta alta 20–30 Hz', hz: 25 }
+    ],
+    tryHz: 18,
+    note: 'Lane et al. Physiol. Behav. 1998 (US Army): sujetos con estimulación Beta mostraron mejora significativa en vigilancia sostenida vs grupo control.'
+  },
+  {
+    name: 'Gamma',
+    hz: '30 – 100 Hz',
+    color: '#88ccff',
+    desc: 'Procesamiento cognitivo de alto nivel. El binding Gamma (sincronización a ~40 Hz) integra información de distintas regiones cerebrales en una percepción unificada. Los monjes budistas en meditación compasiva muestran Gamma extraordinariamente alto.',
+    uses: '<strong>Máxima cognición</strong> · Integración sensorial · Memoria de trabajo · Meditación compasiva · Neuroprotección (40 Hz)',
+    subs: [
+      { label: 'Gamma baja 30–50 Hz', hz: 40 },
+      { label: 'Gamma alta 50–100 Hz', hz: 70 }
+    ],
+    tryHz: 40,
+    note: 'Iaccarino et al. Nature 2016 + Martorell et al. Cell 2019 (MIT): estimulación a 40 Hz reduce placas amiloides y marcadores de Alzheimer en modelos animales.'
+  },
+  {
+    name: 'High Gamma / Fast Gamma',
+    hz: '80 – 150 Hz',
+    color: '#aaeeff',
+    desc: 'Oscilaciones de muy alta frecuencia documentadas principalmente con electrodos intracerebrales. Se registran durante procesamiento sensorial agudo, formación de nuevas memorias episódicas y en la corteza visual durante estimulación visual compleja.',
+    uses: '<strong>Investigación básica</strong> · Procesamiento sensorial rápido · Formación de memorias episódicas',
+    subs: [],
+    tryHz: 100,
+    note: 'Principalmente observable con electrodos intracraneales (ECoG). Difícil de registrar con EEG de superficie estándar por atenuación del cráneo.'
+  },
+  {
+    name: 'Lambda',
+    hz: '> 100 Hz (burst)',
+    color: '#ffffff',
+    desc: 'Respuesta oscilatoria breve generada en la corteza occipital ante estímulos visuales súbitos o sacadas oculares. No es una banda continua sino una descarga transitoria. Poco usada en aplicaciones prácticas de entrainment.',
+    uses: '<strong>Respuesta visual refleja</strong> · Investigación de movimientos oculares (sacadas)',
+    subs: [],
+    tryHz: null,
+    note: 'No tiene aplicación práctica en entrainment de consumo. Es una firma electrofisiológica de la respuesta visual primaria.'
+  }
+];
+
+function buildBands() {
+  const list = document.getElementById('bands-list');
+  list.innerHTML = '';
+  allBands.forEach((b, i) => {
+    const div = document.createElement('div');
+    div.className = 'band-item';
+    div.innerHTML = `
+      <div class="band-header" onclick="toggleBand(${i})">
+        <div class="band-dot" style="background:${b.color}"></div>
+        <div class="band-name" style="color:${b.color}">${b.name}</div>
+        <div class="band-hz-tag" style="color:${b.color}; border-color:${b.color}">${b.hz}</div>
+        <div class="band-arrow">▼</div>
+      </div>
+      <div class="band-body">
+        <div class="band-desc">${b.desc}</div>
+        ${b.subs.length ? `<div class="band-sub-label">Subdivisiones</div>
+        <div class="sub-bands">${b.subs.map(s => `<span class="sub-band-chip" onclick="loadHz(${s.hz})">${s.label}</span>`).join('')}</div>` : ''}
+        <div class="band-uses">🎯 ${b.uses}</div>
+        ${b.tryHz ? `<button class="band-try-btn" onclick="loadHz(${b.tryHz})">→ Probar ${b.tryHz} Hz ahora</button>` : ''}
+        <div class="science-note" style="margin-top:10px">📖 ${b.note}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleBand(i) {
+  const items = document.querySelectorAll('.band-item');
+  items[i].classList.toggle('expanded');
+}
+
+function loadHz(h) {
+  hz = h;
+  document.getElementById('freq-slider').value = hz;
+  document.getElementById('freq-display').innerHTML = `${hz} <span>Hz</span>`;
+  updateWaveBadge(hz);
+  document.querySelectorAll('.preset').forEach(x => x.classList.remove('active'));
+  // Switch to session tab
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-session').classList.add('active');
+  document.querySelector('.tab-btn').classList.add('active');
+}
+
+// ─── KEYBOARD ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('breath-screen').classList.contains('active')) {
+      beginSession();
+    } else if (document.getElementById('breath-guide').classList.contains('active')) {
+      stopGuideStartSession();
+    }
+  }
+  if (e.key === 'Escape') {
+    if (document.getElementById('breath-screen').classList.contains('active')) cancelBreath();
+    if (document.getElementById('history-panel').classList.contains('open')) toggleHistory();
+  }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────
+buildPresets();
+buildBands();
+updateWaveBadge(hz);
+currentPreset = presets.find(p => p.hz === 10);
+</script>
+</body>
+</html>

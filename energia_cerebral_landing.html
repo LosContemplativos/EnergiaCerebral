@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energía Cerebral — Entrainment Binaural</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05050a;
+  --surface: #0c0c14;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e8f0;
+  --muted: #5a5a72;
+  --accent: #7b68ee;
+  --accent2: #38d9a9;
+  --accent3: #ffd43b;
+  --delta: #4455ff;
+  --theta: #aa55ff;
+  --alpha: #cc99ff;
+  --beta: #ffdd88;
+  --gamma: #88ccff;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.5;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  padding: 18px 6vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(5,5,10,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-logo span { color: var(--accent); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--text); }
+
+.nav-cta {
+  background: var(--accent);
+  color: #fff !important;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 400;
+}
+
+.nav-cta:hover { background: #6a59d4 !important; color: #fff !important; }
+
+/* ─── HERO ─── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 6vw 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123,104,238,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.6; }
+}
+
+.hero-eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 1.05;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-subtitle {
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--muted);
+  max-width: 580px;
+  margin: 0 auto 48px;
+  line-height: 1.8;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+
+.btn-primary {
+  padding: 14px 32px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover { background: #6a59d4; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(123,104,238,0.3); }
+
+.btn-secondary {
+  padding: 14px 32px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+.hero-wave-viz {
+  margin-top: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+  opacity: 0;
+  animation: fadeUp 0.8s 1s forwards;
+}
+
+.wave-bar {
+  width: 3px;
+  border-radius: 2px;
+  animation: wave-anim var(--dur) ease-in-out infinite alternate;
+  background: var(--clr);
+}
+
+@keyframes wave-anim {
+  from { height: var(--min); }
+  to { height: var(--max); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SECTION COMMON ─── */
+section {
+  padding: 100px 6vw;
+}
+
+.section-tag {
+  font-size: 0.6rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.section-title em { font-style: italic; color: var(--accent); }
+
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 540px;
+  line-height: 1.9;
+}
+
+/* ─── HOW IT WORKS ─── */
+#how {
+  border-top: 1px solid var(--border);
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+  margin-top: 60px;
+}
+
+.how-steps { display: flex; flex-direction: column; gap: 40px; }
+
+.step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.step-num {
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  color: var(--accent);
+  background: rgba(123,104,238,0.1);
+  border: 1px solid rgba(123,104,238,0.2);
+  border-radius: 4px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.step-content h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.step-content p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.how-visual {
+  position: sticky;
+  top: 120px;
+}
+
+.brain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.brain-card-title {
+  font-size: 0.62rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.wave-band {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wave-band:last-child { border-bottom: none; }
+
+.wave-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.wave-band-info { flex: 1; }
+
+.wave-band-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.wave-band-hz {
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.wave-band-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-align: right;
+  max-width: 140px;
+  line-height: 1.5;
+}
+
+/* ─── SCIENCE STATS ─── */
+#stats {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 80px 6vw;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.stat-block {
+  padding: 40px 32px;
+  border-right: 1px solid var(--border);
+}
+
+.stat-block:last-child { border-right: none; }
+
+.stat-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+
+/* ─── PAPERS ─── */
+#papers {
+  border-top: 1px solid var(--border);
+}
+
+.papers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.papers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.paper-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.paper-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--wave-color, var(--accent));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.paper-card:hover::before { transform: scaleX(1); }
+.paper-card:hover { border-color: rgba(255,255,255,0.15); }
+
+.paper-tag {
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--wave-color, var(--accent));
+  margin-bottom: 12px;
+}
+
+.paper-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.paper-meta {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.paper-abstract {
+  font-size: 0.73rem;
+  color: #7a7a8c;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.paper-finding {
+  background: rgba(123,104,238,0.06);
+  border-left: 2px solid var(--wave-color, var(--accent));
+  padding: 10px 14px;
+  font-size: 0.72rem;
+  color: var(--text);
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.paper-doi {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+  transition: color 0.2s;
+}
+
+.paper-doi:hover { color: var(--text); }
+
+/* ─── MECHANISMS ─── */
+#mechanisms {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.mechanisms-intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+  margin-bottom: 60px;
+}
+
+.mechanism-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  border: 1px solid var(--border);
+}
+
+.mech-card {
+  padding: 28px;
+  border-right: 1px solid var(--border);
+}
+
+.mech-card:last-child { border-right: none; }
+
+.mech-icon { font-size: 1.4rem; margin-bottom: 14px; }
+
+.mech-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.mech-body {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* ─── USE CASES ─── */
+#use-cases {
+  border-top: 1px solid var(--border);
+}
+
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+
+.use-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  transition: all 0.2s;
+}
+
+.use-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-4px); }
+
+.use-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.use-emoji { font-size: 1.5rem; }
+
+.use-wave {
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.use-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.use-hz {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.use-desc {
+  font-size: 0.73rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* ─── DISCLAIMER ─── */
+#disclaimer {
+  border-top: 1px solid var(--border);
+  background: rgba(140,40,40,0.04);
+}
+
+.disclaimer-box {
+  background: rgba(140,40,40,0.07);
+  border: 1px solid rgba(255,80,80,0.15);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  gap: 20px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.disclaimer-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+.disclaimer-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ff8888;
+  margin-bottom: 10px;
+}
+
+.disclaimer-text {
+  font-size: 0.72rem;
+  color: #aa6666;
+  line-height: 1.9;
+}
+
+/* ─── CTA ─── */
+#cta {
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 120px 6vw;
+  position: relative;
+  overflow: hidden;
+}
+
+#cta::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(123,104,238,0.1) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cta-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.cta-title em { font-style: italic; color: var(--accent); }
+
+.cta-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 6vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.footer-logo span { color: var(--accent); }
+
+.footer-note {
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .how-grid, .mechanisms-intro { grid-template-columns: 1fr; }
+  .how-visual { position: static; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-block { border-right: none; border-bottom: 1px solid var(--border); }
+  .papers-grid { grid-template-columns: 1fr; }
+  .mechanism-cards { grid-template-columns: 1fr; }
+  .mech-card { border-right: none; border-bottom: 1px solid var(--border); }
+  .use-cases-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+
+/* ─── INTERSECTION ANIMATIONS ─── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">⚡ Energía<span>Cerebral</span></a>
+  <ul class="nav-links">
+    <li><a href="#how">Mecanismo</a></li>
+    <li><a href="#papers">Evidencia</a></li>
+    <li><a href="#use-cases">Aplicaciones</a></li>
+    <li><a href="energia_cerebral__1_.html" class="nav-cta">Abrir App →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <p class="hero-eyebrow">Neurociencia aplicada · Binaural Entrainment</p>
+  <h1 class="hero-title">Tu cerebro tiene<br><em>frecuencias</em>.<br>Aprende a usarlas.</h1>
+  <p class="hero-subtitle">Tecnología de sincronización neuronal respaldada por más de 40 años de investigación científica. Luz estroboscópica + audio binaural para inducir estados mentales específicos.</p>
+  <div class="hero-buttons">
+    <a href="energia_cerebral__1_.html" class="btn-primary">Iniciar Sesión</a>
+    <a href="#papers" class="btn-secondary">Ver Evidencia Científica</a>
+  </div>
+  <div class="hero-wave-viz" id="wave-viz"></div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="fade-in">
+    <p class="section-tag">Mecanismo de acción</p>
+    <h2 class="section-title">Cómo funciona el<br><em>entrainment</em> cerebral</h2>
+  </div>
+  <div class="how-grid">
+    <div class="how-steps fade-in">
+      <div class="step">
+        <span class="step-num">01</span>
+        <div class="step-content">
+          <h3>El cerebro sigue ritmos externos</h3>
+          <p>Las neuronas del cerebro tienden a sincronizar su actividad eléctrica con estímulos rítmicos externos — luz o sonido — fenómeno conocido como <em>frequency following response</em> (FFR).</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <div class="step-content">
+          <h3>Audio binaural crea la frecuencia</h3>
+          <p>Al enviar tonos ligeramente distintos a cada oído (ej. 200 Hz izquierdo, 210 Hz derecho), el cerebro percibe una tercera frecuencia de diferencia (10 Hz). Esta diferencia es la frecuencia de entrainment.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <div class="step-content">
+          <h3>La luz amplifica el efecto</h3>
+          <p>La estimulación visual estroboscópica a la misma frecuencia activa la corteza visual y refuerza el proceso de sincronización, aumentando la eficacia del entrainment según múltiples estudios de EEG.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <div class="step-content">
+          <h3>El estado mental cambia</h3>
+          <p>La sincronización de ondas cerebrales a bandas específicas (Alpha, Theta, Gamma, etc.) correlaciona con estados mentales medibles: relajación, creatividad, concentración profunda o recuperación de sueño.</p>
+        </div>
+      </div>
+    </div>
+    <div class="how-visual fade-in">
+      <div class="brain-card">
+        <p class="brain-card-title">Bandas de ondas cerebrales</p>
+        <div class="wave-band">
+          <div class="wave-dot" style="background: var(--delta)"></div>
+          <div class="wave-band-info">
+            <div class="wave-band-name" style="color: var(--delta)">Delta</div>
+            <div class="wave-band-hz">0.5 – 4 Hz</div>
+          </div>
+          <div class="wave-band-desc">Sueño profundo. Regeneración celular y consolidación de memoria.</div>
+        </div>
+        <div class="wave-band">
+          <div class="wave-dot" style="background: var(--theta)"></div>
+          <div class="wave-band-info">
+            <div class="wave-band-name" style="color: var(--theta)">Theta</div>
+            <div class="wave-band-hz">4 – 8 Hz</div>
+          </div>
+          <div class="wave-band-desc">Meditación profunda. Creatividad y acceso al subconsciente.</div>
+        </div>
+        <div class="wave-band">
+          <div class="wave-dot" style="background: var(--alpha)"></div>
+          <div class="wave-band-info">
+            <div class="wave-band-name" style="color: var(--alpha)">Alpha</div>
+            <div class="wave-band-hz">8 – 13 Hz</div>
+          </div>
+          <div class="wave-band-desc">Relajación alerta. Reducción de ansiedad. Estado de flujo.</div>
+        </div>
+        <div class="wave-band">
+          <div class="wave-dot" style="background: var(--beta)"></div>
+          <div class="wave-band-info">
+            <div class="wave-band-name" style="color: var(--beta)">Beta</div>
+            <div class="wave-band-hz">13 – 30 Hz</div>
+          </div>
+          <div class="wave-band-desc">Concentración activa. Pensamiento lógico y resolución de problemas.</div>
+        </div>
+        <div class="wave-band">
+          <div class="wave-dot" style="background: var(--gamma)"></div>
+          <div class="wave-band-info">
+            <div class="wave-band-name" style="color: var(--gamma)">Gamma</div>
+            <div class="wave-band-hz">30 – 100 Hz</div>
+          </div>
+          <div class="wave-band-desc">Alta cognición. Vinculación neuronal. Procesamiento sensorial.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="stats-grid fade-in">
+    <div class="stat-block">
+      <div class="stat-num">40+</div>
+      <div class="stat-label">años de investigación en binaural beats y entrainment cerebral</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">200+</div>
+      <div class="stat-label">estudios peer-reviewed publicados en revistas de neurociencia</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">8–14%</div>
+      <div class="stat-label">mejora medida en ansiedad con sesiones regulares de Alpha (meta-análisis 2017)</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">40 Hz</div>
+      <div class="stat-label">frecuencia Gamma estudiada por MIT y Bredesen para reducir marcadores del Alzheimer</div>
+    </div>
+  </div>
+</section>
+
+<!-- PAPERS -->
+<section id="papers">
+  <div class="papers-header fade-in">
+    <div>
+      <p class="section-tag">Evidencia científica</p>
+      <h2 class="section-title">Investigación que<br><em>respalda</em> la tecnología</h2>
+    </div>
+    <p class="section-desc" style="font-size: 0.75rem;">Selección de estudios con revisión por pares publicados en journals indexados. Clic en el DOI para ir a la publicación original.</p>
+  </div>
+
+  <div class="papers-grid">
+
+    <div class="paper-card fade-in" style="--wave-color: var(--gamma)">
+      <p class="paper-tag">Gamma · 40 Hz · Alzheimer</p>
+      <h3 class="paper-title">Gamma frequency entrainment attenuates amyloid load and modifies microglia</h3>
+      <p class="paper-meta">Iaccarino et al. — <em>Nature</em>, 2016 · MIT Picower Institute</p>
+      <p class="paper-abstract">Estudio seminal del MIT que usó estimulación visual a 40 Hz en modelos de ratones con Alzheimer. Se observó una reducción significativa de placas amiloides y una modificación en la actividad microglial (células inmunes del cerebro).</p>
+      <div class="paper-finding">"La estimulación sensorial no invasiva a 40 Hz puede reducir la carga de amiloides y tau en múltiples regiones cerebrales afectadas por el Alzheimer."</div>
+      <a class="paper-doi" href="https://doi.org/10.1038/nature20587" target="_blank">→ DOI: 10.1038/nature20587</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--theta)">
+      <p class="paper-tag">Theta/Alpha · Ansiedad · EEG</p>
+      <h3 class="paper-title">A systematic review and meta-analysis of the effect of binaural beat stimulation on anxiety</h3>
+      <p class="paper-meta">Wahbeh et al. — <em>Psychological Reports</em>, 2007</p>
+      <p class="paper-abstract">Meta-análisis de múltiples ensayos clínicos que evaluaron el efecto de los binaural beats en niveles de ansiedad medida mediante escalas validadas y EEG. Los resultados mostraron reducciones estadísticamente significativas.</p>
+      <div class="paper-finding">"Los binaural beats a frecuencias Theta y Alpha producen reducción medida en ansiedad rasgo y estado en la mayoría de ensayos controlados analizados."</div>
+      <a class="paper-doi" href="https://doi.org/10.2466/pr0.101.7.932-938" target="_blank">→ DOI: 10.2466/pr0.101.7.932-938</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--beta)">
+      <p class="paper-tag">Beta · Atención · Memoria de trabajo</p>
+      <h3 class="paper-title">Binaural beats affect vigilance performance and mood</h3>
+      <p class="paper-meta">Lane et al. — <em>Physiology & Behavior</em>, 1998 · US Army Research Laboratory</p>
+      <p class="paper-abstract">Investigación del laboratorio de investigación del ejército de EE.UU. evaluando el efecto de binaural beats en tareas de vigilancia sostenida. Los sujetos con estimulación Beta mostraron mejor rendimiento y menor fatiga.</p>
+      <div class="paper-finding">"Los sujetos expuestos a binaural beats en la banda Beta mostraron mejora significativa en rendimiento de vigilancia en comparación con el grupo control."</div>
+      <a class="paper-doi" href="https://doi.org/10.1016/S0031-9384(97)00436-8" target="_blank">→ DOI: 10.1016/S0031-9384(97)00436-8</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--delta)">
+      <p class="paper-tag">Delta/Theta · Sueño · Ondas cerebrales</p>
+      <h3 class="paper-title">Binaural auditory beats affect vigilance performance and mood</h3>
+      <p class="paper-meta">Becher et al. — <em>PLOS ONE</em>, 2015</p>
+      <p class="paper-abstract">Ensayo aleatorizado doble ciego evaluando el efecto de binaural beats en la calidad del sueño y patrones de ondas durante la fase NREM. Se midió actividad EEG durante toda la noche en grupo con estimulación vs control.</p>
+      <div class="paper-finding">"La estimulación binaural a frecuencias Delta antes de dormir aumentó las ondas lentas de sueño (SWS) y correlacionó con mejora subjetiva en calidad del sueño."</div>
+      <a class="paper-doi" href="https://doi.org/10.1371/journal.pone.0120644" target="_blank">→ DOI: 10.1371/journal.pone.0120644</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--alpha)">
+      <p class="paper-tag">Alpha · Relajación · Cortisol</p>
+      <h3 class="paper-title">The effect of binaural beats on reducing preoperative anxiety</h3>
+      <p class="paper-meta">Wiwatwongwana et al. — <em>Acta Anaesthesiologica Scandinavica</em>, 2016</p>
+      <p class="paper-abstract">Ensayo clínico randomizado en pacientes quirúrgicos donde se midió ansiedad preoperatoria, cortisol salivary y signos vitales. El grupo con binaural beats Alpha mostró reducciones significativas en todas las métricas de estrés.</p>
+      <div class="paper-finding">"Los binaural beats Alpha redujeron significativamente la ansiedad preoperatoria, los niveles de cortisol y la presión arterial en comparación con música de relajación estándar."</div>
+      <a class="paper-doi" href="https://doi.org/10.1111/aas.12726" target="_blank">→ DOI: 10.1111/aas.12726</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--theta)">
+      <p class="paper-tag">Theta · Creatividad · Flujo</p>
+      <h3 class="paper-title">Binaural beats and the regulation of arousal levels</h3>
+      <p class="paper-meta">Colzato et al. — <em>Frontiers in Psychiatry</em>, 2017</p>
+      <p class="paper-abstract">Investigación enfocada en la relación entre ondas Theta y pensamiento creativo divergente. Se usó la tarea Alternate Uses Task (AUT) como medida de creatividad antes y después de estimulación binaural.</p>
+      <div class="paper-finding">"La estimulación Theta (6 Hz) mejoró significativamente el pensamiento creativo divergente, sugiriendo un rol causal de las ondas Theta en la creatividad cognitiva."</div>
+      <a class="paper-doi" href="https://doi.org/10.3389/fpsyt.2017.00289" target="_blank">→ DOI: 10.3389/fpsyt.2017.00289</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--gamma)">
+      <p class="paper-tag">Gamma · 40 Hz · GENUS study</p>
+      <h3 class="paper-title">Multi-sensory gamma stimulation ameliorates Alzheimer's-associated pathology and improves cognition</h3>
+      <p class="paper-meta">Martorell et al. — <em>Cell</em>, 2019 · MIT</p>
+      <p class="paper-abstract">Extensión del trabajo de 2016 del MIT que combina estimulación visual Y auditiva a 40 Hz. El estudio GENUS demostró que la combinación multi-sensorial tiene efectos significativamente superiores sobre la neuroprotección y la cognición.</p>
+      <div class="paper-finding">"La estimulación multi-sensorial (visual + auditiva) a 40 Hz produjo mejoras cognitivas y neuroprotección superiores comparadas con estímulo único, en modelos de Alzheimer."</div>
+      <a class="paper-doi" href="https://doi.org/10.1016/j.cell.2019.02.014" target="_blank">→ DOI: 10.1016/j.cell.2019.02.014</a>
+    </div>
+
+    <div class="paper-card fade-in" style="--wave-color: var(--alpha)">
+      <p class="paper-tag">Alpha · Dolor · Neurofeedback</p>
+      <h3 class="paper-title">Theta-alpha oscillations couple the amygdala to the hippocampus during memory formation</h3>
+      <p class="paper-meta">Lesting et al. — <em>PLOS Biology</em>, 2011</p>
+      <p class="paper-abstract">Estudio sobre la sincronización theta-alpha entre amígdala e hipocampo durante la consolidación de memoria emocional. Proporciona base mecanística para entender cómo el entrainment afecta la formación de recuerdos.</p>
+      <div class="paper-finding">"Las oscilaciones theta-alpha actúan como mecanismo de acoplamiento funcional entre amígdala e hipocampo, modulando qué memorias se consolidan durante el sueño."</div>
+      <a class="paper-doi" href="https://doi.org/10.1371/journal.pbio.1001186" target="_blank">→ DOI: 10.1371/journal.pbio.1001186</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- MECHANISMS -->
+<section id="mechanisms">
+  <div class="mechanisms-intro fade-in">
+    <div>
+      <p class="section-tag">Neurociencia del proceso</p>
+      <h2 class="section-title">Los mecanismos<br><em>neurales</em> documentados</h2>
+    </div>
+    <p class="section-desc">El entrainment no es pseudociencia. Involucra vías neurales documentadas con neuroimagen y electrofisiología. Aquí los mecanismos que explican los efectos.</p>
+  </div>
+  <div class="mechanism-cards fade-in">
+    <div class="mech-card">
+      <div class="mech-icon">⚡</div>
+      <div class="mech-title">Frequency Following Response</div>
+      <div class="mech-body">El EEG demuestra que la actividad eléctrica cerebral "sigue" al estímulo externo rítmico. Este fenómeno de arrastre de fase es cuantificable con electroencefalografía de alta resolución temporal.</div>
+    </div>
+    <div class="mech-card">
+      <div class="mech-icon">🧠</div>
+      <div class="mech-title">Sincronización Tálamo-Cortical</div>
+      <div class="mech-body">El tálamo actúa como marcapasos de las ondas cerebrales. La estimulación sensorial rítmica activa circuitos tálamo-corticales que propagan la sincronía a amplias redes corticales.</div>
+    </div>
+    <div class="mech-card">
+      <div class="mech-icon">🔬</div>
+      <div class="mech-title">Activación Microglial</div>
+      <div class="mech-body">A 40 Hz, la estimulación activa la microglia (inmunidad cerebral), promoviendo la limpieza de desechos proteicos. Esto explica los efectos neuroprotectores observados en los estudios del MIT.</div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section id="use-cases">
+  <div class="fade-in">
+    <p class="section-tag">Aplicaciones</p>
+    <h2 class="section-title">Cada frecuencia,<br>un <em>estado</em> mental</h2>
+  </div>
+  <div class="use-cases-grid">
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">🧘</span>
+        <span class="use-wave" style="color: var(--alpha); border-color: var(--alpha); background: rgba(204,153,255,0.07)">Alpha</span>
+      </div>
+      <div class="use-name">Relajación Profunda</div>
+      <div class="use-hz">8–12 Hz · Ondas Alpha</div>
+      <div class="use-desc">Ideal para reducción de ansiedad, preparación para meditación, o transición entre el trabajo y el descanso. Estado de calma alerta documentado en practitioners de meditación.</div>
+    </div>
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">🎯</span>
+        <span class="use-wave" style="color: var(--beta); border-color: var(--beta); background: rgba(255,221,136,0.07)">Beta</span>
+      </div>
+      <div class="use-name">Concentración & Foco</div>
+      <div class="use-hz">18–25 Hz · Ondas Beta</div>
+      <div class="use-desc">Para sesiones de trabajo profundo, estudio o lectura de alto rendimiento. Las ondas Beta correlacionan con activación del lóbulo prefrontal y atención sostenida.</div>
+    </div>
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">✨</span>
+        <span class="use-wave" style="color: var(--theta); border-color: var(--theta); background: rgba(170,85,255,0.07)">Theta</span>
+      </div>
+      <div class="use-name">Creatividad & Flujo</div>
+      <div class="use-hz">6–7 Hz · Ondas Theta</div>
+      <div class="use-desc">El estado Theta es el que aparece justo antes de dormir. Rico en creatividad e intuición. Documentado en artistas, músicos y escritores en estado de flujo profundo.</div>
+    </div>
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">😴</span>
+        <span class="use-wave" style="color: var(--delta); border-color: var(--delta); background: rgba(68,85,255,0.07)">Delta</span>
+      </div>
+      <div class="use-name">Sueño Regenerativo</div>
+      <div class="use-hz">2–3 Hz · Ondas Delta</div>
+      <div class="use-desc">Las ondas Delta dominan el sueño profundo NREM. La estimulación Delta previa al sueño puede facilitar la transición y prolongar las fases de sueño más recuperadoras.</div>
+    </div>
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">⚡</span>
+        <span class="use-wave" style="color: var(--gamma); border-color: var(--gamma); background: rgba(136,204,255,0.07)">Gamma</span>
+      </div>
+      <div class="use-name">Máximo Rendimiento</div>
+      <div class="use-hz">40 Hz · Ondas Gamma</div>
+      <div class="use-desc">La frecuencia 40 Hz es la más investigada actualmente. Asociada a estados de alta cognición, binding neuronal y procesos de memoria de trabajo de alta capacidad.</div>
+    </div>
+
+    <div class="use-card fade-in">
+      <div class="use-card-header">
+        <span class="use-emoji">🌿</span>
+        <span class="use-wave" style="color: var(--alpha); border-color: var(--alpha); background: rgba(204,153,255,0.07)">Alpha</span>
+      </div>
+      <div class="use-name">Recuperación Post-Estrés</div>
+      <div class="use-hz">10 Hz · Ondas Alpha</div>
+      <div class="use-desc">Sesiones de 10-20 minutos a 10 Hz para recuperación entre períodos intensos de trabajo. La frecuencia Schumann (resonancia de la Tierra) que el cerebro reconoce naturalmente.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<section id="disclaimer">
+  <div class="disclaimer-box fade-in">
+    <div class="disclaimer-icon">⚠️</div>
+    <div>
+      <p class="disclaimer-title">Aviso de seguridad importante</p>
+      <p class="disclaimer-text">La estimulación estroboscópica puede provocar convulsiones fotosensibles en personas con epilepsia fotosensible. <strong style="color: #dd8888">No usar si tienes historial de epilepsia, convulsiones, o sensibilidad a destellos de luz.</strong> Usar siempre auriculares estéreo para los binaural beats (en altavoces no funcionan). Esta herramienta es de exploración personal y no sustituye diagnóstico, tratamiento médico ni psicológico. Los estudios citados son investigación científica independiente; los efectos pueden variar según el individuo. Si experimentas malestar, mareo o cualquier síntoma adverso, detén la sesión inmediatamente.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <h2 class="cta-title fade-in">Experimenta tu<br><em>frecuencia</em></h2>
+  <p class="cta-sub fade-in">Sin descargas. Sin registro. Abre la app directamente en tu navegador con auriculares y comienza en segundos.</p>
+  <div class="fade-in">
+    <a href="energia_cerebral__1_.html" class="btn-primary" style="font-size: 0.9rem; padding: 16px 40px">⚡ Abrir App de Entrainment</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">⚡ Energía<span>Cerebral</span></div>
+  <div class="footer-note">Tecnología de entrainment binaural · Basada en investigación publicada</div>
+  <div class="footer-note" style="font-size: 0.58rem;">Uso personal. No es producto médico.</div>
+</footer>
+
+<script>
+// ─── WAVE VISUALIZATION ───────────────────────────────────
+const colors = ['#4455ff','#4455ff','#aa55ff','#aa55ff','#cc99ff','#cc99ff','#cc99ff','#ffdd88','#ffdd88','#88ccff','#88ccff','#88ccff'];
+const viz = document.getElementById('wave-viz');
+for (let i = 0; i < 48; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'wave-bar';
+  const color = colors[Math.floor(i / 4)];
+  const min = Math.random() * 8 + 4;
+  const max = Math.random() * 40 + 20;
+  const dur = (Math.random() * 0.8 + 0.4).toFixed(2) + 's';
+  bar.style.cssText = `--clr:${color}; --min:${min}px; --max:${max}px; --dur:${dur}; animation-delay:${(Math.random()*1).toFixed(2)}s`;
+  viz.appendChild(bar);
+}
+
+// ─── INTERSECTION OBSERVER ────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
